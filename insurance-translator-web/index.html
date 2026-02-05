@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>보험 약관, 쉽게 읽기</title>
+  <!-- PDF.js 라이브러리 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -19,7 +21,7 @@
     }
 
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
     }
 
@@ -64,41 +66,342 @@
       font-size: 1.5rem;
     }
 
-    /* 입력 영역 */
-    .input-area {
-      width: 100%;
-      min-height: 150px;
-      padding: 20px;
-      border: 2px solid #e0e0e0;
-      border-radius: 12px;
-      font-size: 1rem;
-      line-height: 1.8;
-      resize: vertical;
-      transition: border-color 0.3s;
+    /* 파일 업로드 영역 */
+    .upload-area {
+      border: 3px dashed #ddd;
+      border-radius: 16px;
+      padding: 50px 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #fafafa;
     }
 
-    .input-area:focus {
-      outline: none;
+    .upload-area:hover {
       border-color: #667eea;
+      background: #f0f4ff;
     }
 
-    .input-area::placeholder {
-      color: #aaa;
+    .upload-area.dragover {
+      border-color: #667eea;
+      background: #e8edff;
+      transform: scale(1.02);
     }
 
-    /* 버튼 */
-    .button-group {
-      display: flex;
-      gap: 10px;
+    .upload-icon {
+      font-size: 4rem;
+      margin-bottom: 15px;
+    }
+
+    .upload-text {
+      font-size: 1.2rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .upload-hint {
+      font-size: 0.9rem;
+      color: #999;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    /* 파일 정보 */
+    .file-info {
+      display: none;
+      align-items: center;
+      gap: 15px;
+      padding: 20px;
+      background: #e8f5e9;
+      border-radius: 12px;
       margin-top: 20px;
     }
 
-    .btn {
+    .file-info.show {
+      display: flex;
+    }
+
+    .file-icon {
+      font-size: 2.5rem;
+    }
+
+    .file-details {
       flex: 1;
-      padding: 16px 24px;
+    }
+
+    .file-name {
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .file-size {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .file-remove {
+      background: #ffebee;
       border: none;
-      border-radius: 12px;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #e53935;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .file-remove:hover {
+      background: #ffcdd2;
+    }
+
+    /* 로딩 */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: #666;
       font-size: 1.1rem;
+    }
+
+    /* 진행바 */
+    .progress-container {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .progress-container.show {
+      display: block;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    /* 결과 영역 */
+    .result-section {
+      display: none;
+    }
+
+    .result-section.show {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 탭 네비게이션 */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+
+    .tab-btn {
+      padding: 12px 24px;
+      border: none;
+      background: transparent;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .tab-btn:hover {
+      background: #f0f0f0;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    /* 약관 내용 */
+    .clause-content {
+      max-height: 600px;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 12px;
+      line-height: 2;
+    }
+
+    .clause-original {
+      display: none;
+    }
+
+    .clause-original.show {
+      display: block;
+    }
+
+    .clause-translated {
+      display: none;
+    }
+
+    .clause-translated.show {
+      display: block;
+    }
+
+    /* 문단 스타일 */
+    .clause-paragraph {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 10px;
+      border-left: 4px solid #667eea;
+    }
+
+    .clause-paragraph-translated {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #e8f5e9;
+      border-radius: 10px;
+      border-left: 4px solid #4caf50;
+    }
+
+    .paragraph-number {
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    /* 용어 하이라이트 */
+    .term-highlight {
+      background: #fff3e0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      cursor: help;
+      border-bottom: 2px dotted #ff9800;
+    }
+
+    .term-easy {
+      background: #e8f5e9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #2e7d32;
+      font-weight: 600;
+    }
+
+    /* 통계 카드 */
+    .stats-card {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-item {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    /* 용어 목록 */
+    .terms-used {
+      margin-top: 20px;
+    }
+
+    .terms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .term-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .term-original {
+      font-weight: 600;
+      color: #e53935;
+      min-width: 80px;
+      text-decoration: line-through;
+    }
+
+    .term-arrow {
+      margin: 0 10px;
+      color: #667eea;
+    }
+
+    .term-translated {
+      color: #2e7d32;
+      font-weight: 600;
+    }
+
+    /* 버튼 */
+    .btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
@@ -119,152 +422,10 @@
       color: #666;
     }
 
-    .btn-secondary:hover {
-      background: #e0e0e0;
-    }
-
-    /* 결과 영역 */
-    .result-card {
-      display: none;
-    }
-
-    .result-card.show {
-      display: block;
-      animation: fadeIn 0.5s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .result-text {
-      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-      padding: 25px;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      line-height: 2;
-      color: #2e7d32;
-      border-left: 4px solid #4caf50;
-    }
-
-    /* 용어 설명 */
-    .terms-section {
-      margin-top: 25px;
-    }
-
-    .terms-grid {
-      display: grid;
+    .action-buttons {
+      display: flex;
       gap: 10px;
-      margin-top: 15px;
-    }
-
-    .term-item {
-      display: flex;
-      align-items: center;
-      padding: 15px;
-      background: #f8f9fa;
-      border-radius: 10px;
-      transition: background 0.3s;
-    }
-
-    .term-item:hover {
-      background: #e9ecef;
-    }
-
-    .term-original {
-      font-weight: 700;
-      color: #e53935;
-      min-width: 100px;
-      text-decoration: line-through;
-      text-decoration-color: rgba(229, 57, 53, 0.5);
-    }
-
-    .term-arrow {
-      margin: 0 15px;
-      color: #667eea;
-      font-size: 1.2rem;
-    }
-
-    .term-easy {
-      font-weight: 600;
-      color: #2e7d32;
-    }
-
-    /* 예시 버튼들 */
-    .examples-section {
       margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid #eee;
-    }
-
-    .examples-title {
-      font-size: 0.9rem;
-      color: #888;
-      margin-bottom: 10px;
-    }
-
-    .example-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .example-btn {
-      padding: 8px 16px;
-      background: #f0f0f0;
-      border: none;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      color: #666;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .example-btn:hover {
-      background: #667eea;
-      color: white;
-    }
-
-    /* 비교 보기 */
-    .comparison {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-top: 20px;
-    }
-
-    @media (max-width: 600px) {
-      .comparison {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .comparison-box {
-      padding: 20px;
-      border-radius: 12px;
-    }
-
-    .comparison-original {
-      background: #ffebee;
-      border-left: 4px solid #e53935;
-    }
-
-    .comparison-translated {
-      background: #e8f5e9;
-      border-left: 4px solid #4caf50;
-    }
-
-    .comparison-label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 10px;
-      color: #666;
-    }
-
-    .comparison-text {
-      font-size: 1rem;
-      line-height: 1.8;
     }
 
     /* 푸터 */
@@ -275,29 +436,53 @@
       font-size: 0.9rem;
     }
 
-    /* 통계 */
-    .stats {
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-      margin-top: 15px;
+    /* 반응형 */
+    @media (max-width: 600px) {
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .stats-card {
+        grid-template-columns: 1fr;
+      }
+
+      .terms-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 샘플 PDF 안내 */
+    .sample-section {
+      margin-top: 20px;
       padding: 15px;
-      background: rgba(255,255,255,0.1);
+      background: #fff3e0;
       border-radius: 10px;
     }
 
-    .stat-item {
-      text-align: center;
+    .sample-title {
+      font-weight: 600;
+      color: #e65100;
+      margin-bottom: 10px;
     }
 
-    .stat-number {
-      font-size: 1.5rem;
-      font-weight: 700;
+    .sample-text {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 10px;
     }
 
-    .stat-label {
-      font-size: 0.8rem;
-      opacity: 0.8;
+    .sample-btn {
+      background: #ff9800;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .sample-btn:hover {
+      background: #f57c00;
     }
   </style>
 </head>
@@ -305,77 +490,112 @@
   <div class="container">
     <!-- 헤더 -->
     <header class="header">
-      <h1>보험 약관, 쉽게 읽기</h1>
-      <p>어려운 보험 약관을 누구나 이해할 수 있는 쉬운 말로 바꿔드려요</p>
-      <div class="stats">
-        <div class="stat-item">
-          <div class="stat-number">50+</div>
-          <div class="stat-label">번역 용어</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-number">15+</div>
-          <div class="stat-label">문장 패턴</div>
-        </div>
-      </div>
+      <h1>📄 보험 약관, 쉽게 읽기</h1>
+      <p>PDF 약관을 업로드하면 쉬운 말로 바꿔드려요</p>
     </header>
 
-    <!-- 입력 카드 -->
-    <div class="card">
+    <!-- 업로드 카드 -->
+    <div class="card" id="uploadCard">
       <div class="card-title">
-        <span class="icon">📋</span>
-        약관 원문을 붙여넣으세요
-      </div>
-      <textarea
-        class="input-area"
-        id="inputText"
-        placeholder="여기에 보험 약관 문장을 붙여넣으세요...
-
-예: 피보험자가 보험기간 중에 질병으로 인하여 사망한 경우 보험수익자에게 사망보험금을 지급합니다."
-      ></textarea>
-
-      <div class="button-group">
-        <button class="btn btn-secondary" onclick="clearAll()">지우기</button>
-        <button class="btn btn-primary" onclick="translateText()">쉽게 바꾸기 ✨</button>
+        <span class="icon">📤</span>
+        보험 약관 PDF를 올려주세요
       </div>
 
-      <!-- 예시 버튼 -->
-      <div class="examples-section">
-        <div class="examples-title">예시 약관으로 체험해보기</div>
-        <div class="example-buttons">
-          <button class="example-btn" onclick="loadExample(0)">보험금 지급</button>
-          <button class="example-btn" onclick="loadExample(1)">면책 조항</button>
-          <button class="example-btn" onclick="loadExample(2)">고지의무</button>
-          <button class="example-btn" onclick="loadExample(3)">보험료 납입</button>
-          <button class="example-btn" onclick="loadExample(4)">해약환급금</button>
-          <button class="example-btn" onclick="loadExample(5)">갱신 안내</button>
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">📑</div>
+        <div class="upload-text">PDF 파일을 여기에 드래그하거나 클릭하세요</div>
+        <div class="upload-hint">보험 약관 PDF 파일 (최대 20MB)</div>
+      </div>
+
+      <input type="file" id="fileInput" class="file-input" accept=".pdf">
+
+      <!-- 파일 정보 -->
+      <div class="file-info" id="fileInfo">
+        <div class="file-icon">📄</div>
+        <div class="file-details">
+          <div class="file-name" id="fileName"></div>
+          <div class="file-size" id="fileSize"></div>
         </div>
+        <button class="file-remove" onclick="removeFile()">삭제</button>
+      </div>
+
+      <!-- 진행바 -->
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">PDF 분석 중...</div>
+      </div>
+
+      <!-- 로딩 -->
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">약관을 쉬운 말로 바꾸는 중...</div>
+      </div>
+
+      <!-- 샘플 안내 -->
+      <div class="sample-section">
+        <div class="sample-title">💡 PDF가 없으신가요?</div>
+        <div class="sample-text">샘플 약관으로 먼저 체험해보세요!</div>
+        <button class="sample-btn" onclick="loadSampleData()">샘플 약관으로 체험하기</button>
       </div>
     </div>
 
-    <!-- 결과 카드 -->
-    <div class="card result-card" id="resultCard">
-      <div class="card-title">
-        <span class="icon">✨</span>
-        쉬운 말로 바꾸면
+    <!-- 결과 섹션 -->
+    <div class="result-section" id="resultSection">
+      <!-- 통계 -->
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">📊</span>
+          분석 결과
+        </div>
+        <div class="stats-card">
+          <div class="stat-item">
+            <div class="stat-number" id="statPages">0</div>
+            <div class="stat-label">페이지</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" id="statTerms">0</div>
+            <div class="stat-label">번역된 용어</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" id="statChars">0</div>
+            <div class="stat-label">글자 수</div>
+          </div>
+        </div>
       </div>
 
-      <!-- 비교 보기 -->
-      <div class="comparison">
-        <div class="comparison-box comparison-original">
-          <div class="comparison-label">📄 원문</div>
-          <div class="comparison-text" id="originalText"></div>
-        </div>
-        <div class="comparison-box comparison-translated">
-          <div class="comparison-label">✅ 쉬운 말</div>
-          <div class="comparison-text" id="translatedText"></div>
-        </div>
-      </div>
-
-      <!-- 용어 설명 -->
-      <div class="terms-section">
+      <!-- 약관 내용 -->
+      <div class="card">
         <div class="card-title">
           <span class="icon">📖</span>
-          이 문장에서 바꾼 용어들
+          약관 내용
+        </div>
+
+        <div class="tabs">
+          <button class="tab-btn active" onclick="showTab('translated')">✨ 쉬운 말</button>
+          <button class="tab-btn" onclick="showTab('original')">📄 원문</button>
+          <button class="tab-btn" onclick="showTab('compare')">🔄 비교</button>
+        </div>
+
+        <div class="clause-content" id="clauseContent">
+          <div class="clause-translated show" id="translatedContent"></div>
+          <div class="clause-original" id="originalContent"></div>
+          <div class="clause-compare" id="compareContent" style="display:none;"></div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn btn-secondary" onclick="copyToClipboard()">📋 복사하기</button>
+          <button class="btn btn-secondary" onclick="downloadText()">💾 다운로드</button>
+          <button class="btn btn-primary" onclick="resetAll()">🔄 다른 파일 분석</button>
+        </div>
+      </div>
+
+      <!-- 사용된 용어 -->
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">📚</span>
+          이 약관에서 바꾼 용어들
         </div>
         <div class="terms-grid" id="termsGrid"></div>
       </div>
@@ -389,6 +609,9 @@
   </div>
 
   <script>
+    // PDF.js 설정
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
     // 용어 사전
     const termDictionary = {
       // 사람 관련
@@ -397,6 +620,7 @@
       '보험수익자': '보험금 받는 사람',
       '계약자': '가입한 사람',
       '수익자': '돈 받는 사람',
+      '피보험인': '보험 대상자',
 
       // 돈 관련
       '보험료': '보험에 내는 돈',
@@ -407,6 +631,7 @@
       '지급': '드림',
       '청구': '신청',
       '면제': '안 내도 됨',
+      '책임준비금': '보험사가 모아둔 돈',
 
       // 기간 관련
       '면책기간': '보험금 못 받는 기간',
@@ -416,6 +641,7 @@
       '만기': '끝나는 날',
       '갱신': '다시 계약',
       '보험기간': '보험 기간',
+      '유예기간': '기다려주는 기간',
 
       // 계약 관련
       '고지의무': '건강상태 알려야 하는 의무',
@@ -428,6 +654,12 @@
       '효력상실': '보험이 멈춘 상태',
       '청약': '가입 신청',
       '청약서': '가입 신청서',
+      '보험증권': '보험 가입 증명서',
+      '계약 체결': '계약 맺음',
+      '계약의 무효': '계약이 처음부터 없던 것',
+      '계약의 취소': '계약 취소',
+      '계약의 해지': '계약 끝냄',
+      '계약의 소멸': '계약이 없어짐',
 
       // 보장 관련
       '보장': '보호',
@@ -439,154 +671,320 @@
       '수술비': '수술하면 주는 돈',
       '실손': '실제로 쓴 만큼',
       '사망보험금': '사망 시 받는 보험금',
+      '재해': '사고',
+      '상해': '다침',
+      '질병': '병',
 
       // 상태 관련
       '기왕증': '이미 있던 병',
-      '질병': '병',
-      '상해': '다침',
       '후유장해': '사고 후 남은 장애',
       '심신상실': '정신을 잃은 상태',
+      '장해': '장애',
 
-      // 기타
-      '즉시': '바로',
-      '경과': '지난',
-      '해당': '맞는',
+      // 법률/행정 용어
+      '준용': '똑같이 적용',
+      '적용': '사용',
+      '규정': '규칙',
+      '조항': '내용',
+      '전항': '위 내용',
+      '본항': '이 내용',
+      '동': '같은',
       '상기': '위의',
       '하기': '아래의',
-      '기재': '적힌',
       '명시': '적어놓은',
+      '기재': '적힌',
       '소정': '정해진',
+      '해당': '맞는',
       '익일': '다음 날',
-      '전항': '위 내용',
-      '동': '같은',
+      '즉시': '바로',
+      '경과': '지난',
+
+      // 문장 패턴
       '및': '그리고',
       '또는': '혹은',
       '단': '다만',
       '의거': '따라',
-      '준용': '똑같이 적용',
+      '으로 인하여': ' 때문에',
+      '로 인하여': ' 때문에',
+      '에 의하여': '에 따라',
+      '에 한하여': '만',
+      '하여야': '해야',
+      '하였을': '했을',
       '아니합니다': '않아요',
       '있습니다': '있어요',
       '없습니다': '없어요',
       '됩니다': '돼요',
       '입니다': '이에요',
       '합니다': '해요',
-      '으로 인하여': ' 때문에',
-      '로 인하여': ' 때문에',
-      '에 의하여': '에 따라',
-      '하여야': '해야',
-      '하였을': '했을',
+      '않습니다': '않아요',
       '별도의 의사표시': '따로 말',
       '의사결정': '판단',
       '자유로운': '스스로',
     };
 
-    // 예시 약관들
-    const sampleClauses = [
-      {
-        title: '보험금 지급',
-        text: '피보험자가 보험기간 중에 질병으로 인하여 사망한 경우 보험수익자에게 사망보험금을 지급합니다.'
-      },
-      {
-        title: '면책 조항',
-        text: '피보험자가 고의로 자신을 해친 경우에는 보험금을 지급하지 아니합니다. 단, 피보험자가 심신상실 등으로 자유로운 의사결정을 할 수 없는 상태에서 자신을 해친 경우에는 보험금을 지급합니다.'
-      },
-      {
-        title: '고지의무',
-        text: '보험계약자 또는 피보험자는 청약시 청약서에서 질문한 사항에 대하여 알고 있는 사실을 반드시 사실대로 알려야 합니다. 고지의무를 위반한 경우 보험금 지급이 거절될 수 있습니다.'
-      },
-      {
-        title: '보험료 납입',
-        text: '보험계약자는 제1회 보험료를 청약시에 납입하여야 하며, 제2회 이후의 보험료는 납입기일까지 납입하여야 합니다.'
-      },
-      {
-        title: '해약환급금',
-        text: '보험계약자가 보험계약을 해지한 경우 해약환급금을 지급합니다. 단, 보험료를 납입한 기간이 1년 미만인 경우 해약환급금이 없거나 매우 적을 수 있습니다.'
-      },
-      {
-        title: '갱신 안내',
-        text: '이 보험은 갱신형 상품으로, 보장기간 만료일 전일까지 보험계약자가 별도의 의사표시를 하지 않으면 자동으로 갱신됩니다. 갱신시 보험료는 갱신일 현재 피보험자의 연령 및 적용요율에 따라 변경될 수 있습니다.'
+    // 전역 변수
+    let originalText = '';
+    let translatedText = '';
+    let usedTerms = [];
+
+    // 드래그 앤 드롭
+    const uploadArea = document.getElementById('uploadArea');
+
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type === 'application/pdf') {
+        handleFile(file);
+      } else {
+        alert('PDF 파일만 업로드할 수 있어요!');
       }
-    ];
+    });
+
+    // 파일 선택
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        handleFile(file);
+      }
+    });
+
+    // 파일 처리
+    async function handleFile(file) {
+      // 파일 정보 표시
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = formatFileSize(file.size);
+      document.getElementById('fileInfo').classList.add('show');
+      document.getElementById('progressContainer').classList.add('show');
+
+      try {
+        // PDF 텍스트 추출
+        const text = await extractTextFromPDF(file);
+        originalText = text;
+
+        // 번역
+        document.getElementById('loading').classList.add('show');
+        await new Promise(resolve => setTimeout(resolve, 500)); // UX를 위한 딜레이
+
+        const result = translateClause(text);
+        translatedText = result.translated;
+        usedTerms = result.usedTerms;
+
+        // 결과 표시
+        displayResults(text, translatedText, usedTerms);
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('PDF를 읽는 중 오류가 발생했어요. 다른 파일을 시도해주세요.');
+      } finally {
+        document.getElementById('loading').classList.remove('show');
+        document.getElementById('progressContainer').classList.remove('show');
+      }
+    }
+
+    // PDF 텍스트 추출
+    async function extractTextFromPDF(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const totalPages = pdf.numPages;
+      let fullText = '';
+
+      for (let i = 1; i <= totalPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ');
+        fullText += pageText + '\n\n';
+
+        // 진행률 업데이트
+        const progress = Math.round((i / totalPages) * 100);
+        document.getElementById('progressFill').style.width = progress + '%';
+        document.getElementById('progressText').textContent = `PDF 분석 중... ${i}/${totalPages} 페이지`;
+      }
+
+      document.getElementById('statPages').textContent = totalPages;
+      return fullText;
+    }
 
     // 번역 함수
-    function translateText() {
-      const input = document.getElementById('inputText').value.trim();
-
-      if (!input) {
-        alert('약관 문장을 입력해주세요!');
-        return;
-      }
-
-      let translated = input;
+    function translateClause(text) {
+      let translated = text;
       const usedTerms = [];
 
-      // 긴 용어부터 먼저 치환 (부분 매칭 방지)
+      // 긴 용어부터 먼저 치환
       const sortedTerms = Object.entries(termDictionary)
         .sort((a, b) => b[0].length - a[0].length);
 
       sortedTerms.forEach(([term, easy]) => {
-        if (input.includes(term)) {
+        if (text.includes(term)) {
           translated = translated.split(term).join(easy);
           usedTerms.push({ original: term, easy: easy });
         }
       });
 
-      // 결과 표시
-      document.getElementById('originalText').textContent = input;
-      document.getElementById('translatedText').textContent = translated;
+      return { translated, usedTerms };
+    }
 
-      // 사용된 용어 표시
-      const termsGrid = document.getElementById('termsGrid');
-      termsGrid.innerHTML = '';
+    // 결과 표시
+    function displayResults(original, translated, terms) {
+      // 통계 업데이트
+      document.getElementById('statTerms').textContent = terms.length;
+      document.getElementById('statChars').textContent = original.length.toLocaleString();
 
-      // 중복 제거
-      const uniqueTerms = usedTerms.filter((item, index, self) =>
+      // 원문 표시 (문단별로 나누기)
+      const originalParagraphs = original.split('\n\n').filter(p => p.trim());
+      const translatedParagraphs = translated.split('\n\n').filter(p => p.trim());
+
+      // 원문
+      document.getElementById('originalContent').innerHTML = originalParagraphs.map((p, i) => `
+        <div class="clause-paragraph">
+          <div class="paragraph-number">문단 ${i + 1}</div>
+          ${p}
+        </div>
+      `).join('');
+
+      // 번역문
+      document.getElementById('translatedContent').innerHTML = translatedParagraphs.map((p, i) => `
+        <div class="clause-paragraph-translated">
+          <div class="paragraph-number">문단 ${i + 1}</div>
+          ${p}
+        </div>
+      `).join('');
+
+      // 비교 보기
+      document.getElementById('compareContent').innerHTML = originalParagraphs.map((p, i) => `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+          <div class="clause-paragraph">
+            <div class="paragraph-number">원문 ${i + 1}</div>
+            ${p}
+          </div>
+          <div class="clause-paragraph-translated">
+            <div class="paragraph-number">쉬운 말 ${i + 1}</div>
+            ${translatedParagraphs[i] || ''}
+          </div>
+        </div>
+      `).join('');
+
+      // 사용된 용어
+      const uniqueTerms = terms.filter((item, index, self) =>
         index === self.findIndex(t => t.original === item.original)
       );
 
-      if (uniqueTerms.length > 0) {
-        uniqueTerms.forEach(term => {
-          const termItem = document.createElement('div');
-          termItem.className = 'term-item';
-          termItem.innerHTML = `
-            <span class="term-original">${term.original}</span>
-            <span class="term-arrow">→</span>
-            <span class="term-easy">${term.easy}</span>
-          `;
-          termsGrid.appendChild(termItem);
-        });
-      } else {
-        termsGrid.innerHTML = '<div class="term-item">이미 쉬운 문장이에요! 👍</div>';
-      }
+      document.getElementById('termsGrid').innerHTML = uniqueTerms.map(term => `
+        <div class="term-item">
+          <span class="term-original">${term.original}</span>
+          <span class="term-arrow">→</span>
+          <span class="term-translated">${term.easy}</span>
+        </div>
+      `).join('');
 
-      // 결과 카드 표시
-      document.getElementById('resultCard').classList.add('show');
-
-      // 결과로 스크롤
-      document.getElementById('resultCard').scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
+      // 결과 섹션 표시
+      document.getElementById('resultSection').classList.add('show');
+      document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 예시 로드
-    function loadExample(index) {
-      document.getElementById('inputText').value = sampleClauses[index].text;
-      translateText();
+    // 탭 전환
+    function showTab(tabName) {
+      // 버튼 상태
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      // 컨텐츠 상태
+      document.getElementById('translatedContent').classList.remove('show');
+      document.getElementById('originalContent').classList.remove('show');
+      document.getElementById('compareContent').style.display = 'none';
+
+      if (tabName === 'translated') {
+        document.getElementById('translatedContent').classList.add('show');
+      } else if (tabName === 'original') {
+        document.getElementById('originalContent').classList.add('show');
+      } else if (tabName === 'compare') {
+        document.getElementById('compareContent').style.display = 'block';
+      }
+    }
+
+    // 샘플 데이터 로드
+    function loadSampleData() {
+      const sampleText = `제1조(보험금의 지급사유)
+회사는 피보험자가 보험기간 중에 다음 중 어느 하나의 사유가 발생한 경우에는 보험수익자에게 약정한 보험금을 지급합니다.
+
+1. 사망보험금: 피보험자가 보험기간 중 사망하였을 때
+2. 장해보험금: 피보험자가 보험기간 중 재해로 인하여 장해상태가 되었을 때
+
+제2조(보험금을 지급하지 않는 사유)
+회사는 다음 중 어느 하나에 해당되는 사유를 원인으로 하여 보험금 지급사유가 발생한 때에는 보험금을 지급하지 아니합니다.
+
+1. 피보험자가 고의로 자신을 해친 경우. 단, 피보험자가 심신상실 등으로 자유로운 의사결정을 할 수 없는 상태에서 자신을 해친 경우에는 보험금을 지급합니다.
+2. 보험수익자가 고의로 피보험자를 해친 경우
+3. 보험계약자가 고의로 피보험자를 해친 경우
+
+제3조(고지의무)
+보험계약자 또는 피보험자는 청약시 청약서에서 질문한 사항에 대하여 알고 있는 사실을 반드시 사실대로 알려야 합니다. 고지의무를 위반한 경우 보험금 지급이 거절될 수 있습니다.
+
+제4조(보험료의 납입)
+보험계약자는 제1회 보험료를 청약시에 납입하여야 하며, 제2회 이후의 보험료는 납입기일까지 납입하여야 합니다.
+보험료 납입이 연체되는 경우 납입최고(독촉)기간 내에 보험료를 납입하여야 합니다.
+
+제5조(해약환급금)
+보험계약자가 보험계약을 해지한 경우 회사는 해약환급금을 지급합니다.
+단, 보험료를 납입한 기간이 1년 미만인 경우 해약환급금이 없거나 매우 적을 수 있습니다.
+해약환급금은 책임준비금에서 소정의 공제액을 차감한 금액입니다.`;
+
+      originalText = sampleText;
+      const result = translateClause(sampleText);
+      translatedText = result.translated;
+      usedTerms = result.usedTerms;
+
+      document.getElementById('statPages').textContent = '1';
+      displayResults(sampleText, translatedText, usedTerms);
+    }
+
+    // 파일 삭제
+    function removeFile() {
+      document.getElementById('fileInput').value = '';
+      document.getElementById('fileInfo').classList.remove('show');
     }
 
     // 초기화
-    function clearAll() {
-      document.getElementById('inputText').value = '';
-      document.getElementById('resultCard').classList.remove('show');
+    function resetAll() {
+      document.getElementById('fileInput').value = '';
+      document.getElementById('fileInfo').classList.remove('show');
+      document.getElementById('resultSection').classList.remove('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Enter 키로 번역
-    document.getElementById('inputText').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && e.ctrlKey) {
-        translateText();
-      }
-    });
+    // 복사
+    function copyToClipboard() {
+      navigator.clipboard.writeText(translatedText).then(() => {
+        alert('클립보드에 복사되었어요!');
+      });
+    }
+
+    // 다운로드
+    function downloadText() {
+      const blob = new Blob([translatedText], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '쉬운약관.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // 파일 크기 포맷
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
   </script>
 </body>
 </html>
