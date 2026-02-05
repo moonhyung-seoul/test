@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "보험쉽게",
+    "slug": "easy-insurance",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#4A90D9"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lifeinsurance.easyinsurance"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#4A90D9"
+      },
+      "package": "com.lifeinsurance.easyinsurance"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "description": "젊은층을 위한 쉬운 보험 안내 앱 - 생명보험사 CSR 프로그램"
+  }
+}
