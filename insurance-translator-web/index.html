@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보험 약관, 쉽게 읽기</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* 헤더 */
+    .header {
+      text-align: center;
+      padding: 40px 20px;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    /* 메인 카드 */
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .card-title .icon {
+      font-size: 1.5rem;
+    }
+
+    /* 입력 영역 */
+    .input-area {
+      width: 100%;
+      min-height: 150px;
+      padding: 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 1rem;
+      line-height: 1.8;
+      resize: vertical;
+      transition: border-color 0.3s;
+    }
+
+    .input-area:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .input-area::placeholder {
+      color: #aaa;
+    }
+
+    /* 버튼 */
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #666;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    /* 결과 영역 */
+    .result-card {
+      display: none;
+    }
+
+    .result-card.show {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-text {
+      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+      padding: 25px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      line-height: 2;
+      color: #2e7d32;
+      border-left: 4px solid #4caf50;
+    }
+
+    /* 용어 설명 */
+    .terms-section {
+      margin-top: 25px;
+    }
+
+    .terms-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .term-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      transition: background 0.3s;
+    }
+
+    .term-item:hover {
+      background: #e9ecef;
+    }
+
+    .term-original {
+      font-weight: 700;
+      color: #e53935;
+      min-width: 100px;
+      text-decoration: line-through;
+      text-decoration-color: rgba(229, 57, 53, 0.5);
+    }
+
+    .term-arrow {
+      margin: 0 15px;
+      color: #667eea;
+      font-size: 1.2rem;
+    }
+
+    .term-easy {
+      font-weight: 600;
+      color: #2e7d32;
+    }
+
+    /* 예시 버튼들 */
+    .examples-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .examples-title {
+      font-size: 0.9rem;
+      color: #888;
+      margin-bottom: 10px;
+    }
+
+    .example-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .example-btn {
+      padding: 8px 16px;
+      background: #f0f0f0;
+      border: none;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .example-btn:hover {
+      background: #667eea;
+      color: white;
+    }
+
+    /* 비교 보기 */
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .comparison-box {
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .comparison-original {
+      background: #ffebee;
+      border-left: 4px solid #e53935;
+    }
+
+    .comparison-translated {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+    }
+
+    .comparison-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #666;
+    }
+
+    .comparison-text {
+      font-size: 1rem;
+      line-height: 1.8;
+    }
+
+    /* 푸터 */
+    .footer {
+      text-align: center;
+      padding: 30px;
+      color: rgba(255,255,255,0.8);
+      font-size: 0.9rem;
+    }
+
+    /* 통계 */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 헤더 -->
+    <header class="header">
+      <h1>보험 약관, 쉽게 읽기</h1>
+      <p>어려운 보험 약관을 누구나 이해할 수 있는 쉬운 말로 바꿔드려요</p>
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-number">50+</div>
+          <div class="stat-label">번역 용어</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">15+</div>
+          <div class="stat-label">문장 패턴</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 입력 카드 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">📋</span>
+        약관 원문을 붙여넣으세요
+      </div>
+      <textarea
+        class="input-area"
+        id="inputText"
+        placeholder="여기에 보험 약관 문장을 붙여넣으세요...
+
+예: 피보험자가 보험기간 중에 질병으로 인하여 사망한 경우 보험수익자에게 사망보험금을 지급합니다."
+      ></textarea>
+
+      <div class="button-group">
+        <button class="btn btn-secondary" onclick="clearAll()">지우기</button>
+        <button class="btn btn-primary" onclick="translateText()">쉽게 바꾸기 ✨</button>
+      </div>
+
+      <!-- 예시 버튼 -->
+      <div class="examples-section">
+        <div class="examples-title">예시 약관으로 체험해보기</div>
+        <div class="example-buttons">
+          <button class="example-btn" onclick="loadExample(0)">보험금 지급</button>
+          <button class="example-btn" onclick="loadExample(1)">면책 조항</button>
+          <button class="example-btn" onclick="loadExample(2)">고지의무</button>
+          <button class="example-btn" onclick="loadExample(3)">보험료 납입</button>
+          <button class="example-btn" onclick="loadExample(4)">해약환급금</button>
+          <button class="example-btn" onclick="loadExample(5)">갱신 안내</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 결과 카드 -->
+    <div class="card result-card" id="resultCard">
+      <div class="card-title">
+        <span class="icon">✨</span>
+        쉬운 말로 바꾸면
+      </div>
+
+      <!-- 비교 보기 -->
+      <div class="comparison">
+        <div class="comparison-box comparison-original">
+          <div class="comparison-label">📄 원문</div>
+          <div class="comparison-text" id="originalText"></div>
+        </div>
+        <div class="comparison-box comparison-translated">
+          <div class="comparison-label">✅ 쉬운 말</div>
+          <div class="comparison-text" id="translatedText"></div>
+        </div>
+      </div>
+
+      <!-- 용어 설명 -->
+      <div class="terms-section">
+        <div class="card-title">
+          <span class="icon">📖</span>
+          이 문장에서 바꾼 용어들
+        </div>
+        <div class="terms-grid" id="termsGrid"></div>
+      </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+      <p>젊은 당신을 위한 새로운 보험 경험</p>
+      <p style="margin-top: 5px; opacity: 0.7;">브랜드 리뉴얼 프로젝트</p>
+    </footer>
+  </div>
+
+  <script>
+    // 용어 사전
+    const termDictionary = {
+      // 사람 관련
+      '피보험자': '보험 대상자(보호받는 사람)',
+      '보험계약자': '보험 가입자(돈 내는 사람)',
+      '보험수익자': '보험금 받는 사람',
+      '계약자': '가입한 사람',
+      '수익자': '돈 받는 사람',
+
+      // 돈 관련
+      '보험료': '보험에 내는 돈',
+      '보험금': '보험에서 받는 돈',
+      '해약환급금': '해지하면 돌려받는 돈',
+      '환급금': '돌려받는 돈',
+      '납입': '내는 것',
+      '지급': '드림',
+      '청구': '신청',
+      '면제': '안 내도 됨',
+
+      // 기간 관련
+      '면책기간': '보험금 못 받는 기간',
+      '감액기간': '보험금 적게 받는 기간',
+      '납입기간': '돈 내는 기간',
+      '보장기간': '보호받는 기간',
+      '만기': '끝나는 날',
+      '갱신': '다시 계약',
+      '보험기간': '보험 기간',
+
+      // 계약 관련
+      '고지의무': '건강상태 알려야 하는 의무',
+      '통지의무': '알려야 하는 의무',
+      '고지': '알림',
+      '약관': '보험 규칙',
+      '특약': '추가 옵션',
+      '주계약': '기본 보험',
+      '부활': '해지된 보험 다시 살리기',
+      '효력상실': '보험이 멈춘 상태',
+      '청약': '가입 신청',
+      '청약서': '가입 신청서',
+
+      // 보장 관련
+      '보장': '보호',
+      '담보': '보장해주는 것',
+      '면책': '보험금 안 주는 경우',
+      '부담보': '보장 안 해주는 것',
+      '진단금': '병 걸리면 주는 돈',
+      '입원일당': '입원하면 하루에 주는 돈',
+      '수술비': '수술하면 주는 돈',
+      '실손': '실제로 쓴 만큼',
+      '사망보험금': '사망 시 받는 보험금',
+
+      // 상태 관련
+      '기왕증': '이미 있던 병',
+      '질병': '병',
+      '상해': '다침',
+      '후유장해': '사고 후 남은 장애',
+      '심신상실': '정신을 잃은 상태',
+
+      // 기타
+      '즉시': '바로',
+      '경과': '지난',
+      '해당': '맞는',
+      '상기': '위의',
+      '하기': '아래의',
+      '기재': '적힌',
+      '명시': '적어놓은',
+      '소정': '정해진',
+      '익일': '다음 날',
+      '전항': '위 내용',
+      '동': '같은',
+      '및': '그리고',
+      '또는': '혹은',
+      '단': '다만',
+      '의거': '따라',
+      '준용': '똑같이 적용',
+      '아니합니다': '않아요',
+      '있습니다': '있어요',
+      '없습니다': '없어요',
+      '됩니다': '돼요',
+      '입니다': '이에요',
+      '합니다': '해요',
+      '으로 인하여': ' 때문에',
+      '로 인하여': ' 때문에',
+      '에 의하여': '에 따라',
+      '하여야': '해야',
+      '하였을': '했을',
+      '별도의 의사표시': '따로 말',
+      '의사결정': '판단',
+      '자유로운': '스스로',
+    };
+
+    // 예시 약관들
+    const sampleClauses = [
+      {
+        title: '보험금 지급',
+        text: '피보험자가 보험기간 중에 질병으로 인하여 사망한 경우 보험수익자에게 사망보험금을 지급합니다.'
+      },
+      {
+        title: '면책 조항',
+        text: '피보험자가 고의로 자신을 해친 경우에는 보험금을 지급하지 아니합니다. 단, 피보험자가 심신상실 등으로 자유로운 의사결정을 할 수 없는 상태에서 자신을 해친 경우에는 보험금을 지급합니다.'
+      },
+      {
+        title: '고지의무',
+        text: '보험계약자 또는 피보험자는 청약시 청약서에서 질문한 사항에 대하여 알고 있는 사실을 반드시 사실대로 알려야 합니다. 고지의무를 위반한 경우 보험금 지급이 거절될 수 있습니다.'
+      },
+      {
+        title: '보험료 납입',
+        text: '보험계약자는 제1회 보험료를 청약시에 납입하여야 하며, 제2회 이후의 보험료는 납입기일까지 납입하여야 합니다.'
+      },
+      {
+        title: '해약환급금',
+        text: '보험계약자가 보험계약을 해지한 경우 해약환급금을 지급합니다. 단, 보험료를 납입한 기간이 1년 미만인 경우 해약환급금이 없거나 매우 적을 수 있습니다.'
+      },
+      {
+        title: '갱신 안내',
+        text: '이 보험은 갱신형 상품으로, 보장기간 만료일 전일까지 보험계약자가 별도의 의사표시를 하지 않으면 자동으로 갱신됩니다. 갱신시 보험료는 갱신일 현재 피보험자의 연령 및 적용요율에 따라 변경될 수 있습니다.'
+      }
+    ];
+
+    // 번역 함수
+    function translateText() {
+      const input = document.getElementById('inputText').value.trim();
+
+      if (!input) {
+        alert('약관 문장을 입력해주세요!');
+        return;
+      }
+
+      let translated = input;
+      const usedTerms = [];
+
+      // 긴 용어부터 먼저 치환 (부분 매칭 방지)
+      const sortedTerms = Object.entries(termDictionary)
+        .sort((a, b) => b[0].length - a[0].length);
+
+      sortedTerms.forEach(([term, easy]) => {
+        if (input.includes(term)) {
+          translated = translated.split(term).join(easy);
+          usedTerms.push({ original: term, easy: easy });
+        }
+      });
+
+      // 결과 표시
+      document.getElementById('originalText').textContent = input;
+      document.getElementById('translatedText').textContent = translated;
+
+      // 사용된 용어 표시
+      const termsGrid = document.getElementById('termsGrid');
+      termsGrid.innerHTML = '';
+
+      // 중복 제거
+      const uniqueTerms = usedTerms.filter((item, index, self) =>
+        index === self.findIndex(t => t.original === item.original)
+      );
+
+      if (uniqueTerms.length > 0) {
+        uniqueTerms.forEach(term => {
+          const termItem = document.createElement('div');
+          termItem.className = 'term-item';
+          termItem.innerHTML = `
+            <span class="term-original">${term.original}</span>
+            <span class="term-arrow">→</span>
+            <span class="term-easy">${term.easy}</span>
+          `;
+          termsGrid.appendChild(termItem);
+        });
+      } else {
+        termsGrid.innerHTML = '<div class="term-item">이미 쉬운 문장이에요! 👍</div>';
+      }
+
+      // 결과 카드 표시
+      document.getElementById('resultCard').classList.add('show');
+
+      // 결과로 스크롤
+      document.getElementById('resultCard').scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+
+    // 예시 로드
+    function loadExample(index) {
+      document.getElementById('inputText').value = sampleClauses[index].text;
+      translateText();
+    }
+
+    // 초기화
+    function clearAll() {
+      document.getElementById('inputText').value = '';
+      document.getElementById('resultCard').classList.remove('show');
+    }
+
+    // Enter 키로 번역
+    document.getElementById('inputText').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.ctrlKey) {
+        translateText();
+      }
+    });
+  </script>
+</body>
+</html>
